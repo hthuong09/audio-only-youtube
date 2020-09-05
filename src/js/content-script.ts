@@ -11,7 +11,7 @@ async function asyncFind(arr: Array<any>, callback: Function) {
 }
 
 async function checkImageLoaded(imageElement: HTMLImageElement) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const intervalId = setInterval(() => {
       if (imageElement.complete) {
         clearInterval(intervalId);
@@ -26,7 +26,7 @@ async function setBackgroundImage(videoElement: HTMLVideoElement) {
     originalVideoElementStyle = {
       background: videoElement.style.background,
       backgroundSize: videoElement.style.backgroundSize,
-    }
+    };
   }
 
   let vid = window.location.search.split('v=')[1];
@@ -102,13 +102,19 @@ function removeVideoPlayerStyling(videoElement: HTMLVideoElement) {
 }
 
 function applyVideoPlayerStyling(videoElement: HTMLVideoElement) {
-  chrome.storage.sync.get({ showThumbnail: true }, function(item) {
-    if (item.showThumbnail) {
-      setBackgroundImage(videoElement);
+  chrome.storage.sync.get(
+    { showThumbnail: false, showAudioPlayer: true },
+    function(item) {
+      if (item.showThumbnail) {
+        setBackgroundImage(videoElement);
+      }
+      if (item.showAudioPlayer) {
+        turnOnAudioPlayer();
+      } else {
+        showAudioOnlyInformation(videoElement);
+      }
     }
-  });
-
-  showAudioOnlyInformation(videoElement);
+  );
 }
 
 function makeSetAudioURL(videoElement: HTMLVideoElement, url: string) {
@@ -123,6 +129,49 @@ function makeSetAudioURL(videoElement: HTMLVideoElement, url: string) {
     videoElement.play();
   }
   return setAudioURL;
+}
+
+function turnOnAudioPlayer() {
+  if (window.document.getElementById('audio-player') !== null) {
+    return;
+  }
+  const audioPlayerCSS = `
+    #primary-inner #player, #primary-inner .html5-video-player {
+      height: 120px!important;
+    }
+
+    #player-theater-container:not(:empty) {
+      height: 120px!important;
+      min-height: 120px!important
+    }
+
+    #player-theater-container .caption-window {
+      touch-action: none!important;
+      text-align: left!important;
+      left: 50%!important;
+      width: auto!important;
+      margin-left: 0!important;
+      transform: translateX(-50%);
+    }
+
+    #player-theater-container .caption-window span {
+      font-size: 2.5rem!important;
+    }
+
+    .caption-window {
+        margin-bottom: 49px!important;
+    }
+
+    .ytp-chrome-bottom {
+      opacity: 1!important;
+    }
+`;
+  const styleElement = document.createElement('style');
+  styleElement.type = 'text/css';
+  styleElement.id = 'audio-player';
+  styleElement.appendChild(document.createTextNode(audioPlayerCSS));
+  const head = document.getElementsByTagName('head')[0];
+  head.appendChild(styleElement);
 }
 
 chrome.runtime.onMessage.addListener((request) => {

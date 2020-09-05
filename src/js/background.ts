@@ -96,10 +96,9 @@ class Background {
       },
     });
     chrome.tabs.onUpdated.addListener(this.sendMessage);
-    chrome.webRequest.onBeforeRequest.addListener(
-      this.processRequest,
-      { urls: ['<all_urls>'] },
-    );
+    chrome.webRequest.onBeforeRequest.addListener(this.processRequest, {
+      urls: ['<all_urls>'],
+    });
   };
 
   disableExtension = () => {
